@@ -15,34 +15,30 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import anyio
-from langchain_openai import ChatOpenAI
 
 from browser_use import Agent
 from browser_use.agent.views import AgentState
-from browser_use.browser.browser import Browser, BrowserConfig
+from browser_use.browser import BrowserProfile, BrowserSession
+from browser_use.llm import ChatOpenAI
 
 
 async def main():
 	task = 'Go to hackernews show hn and give me the first  5 posts'
 
-	browser = Browser(
-		config=BrowserConfig(
-			headless=True,
-		)
+	browser_profile = BrowserProfile(
+		headless=True,
 	)
-
-	browser_context = await browser.new_context()
+	browser_session = BrowserSession(browser_profile=browser_profile)
 
 	agent_state = AgentState()
 
 	for i in range(10):
 		agent = Agent(
 			task=task,
-			llm=ChatOpenAI(model='gpt-4o'),
-			browser=browser,
-			browser_context=browser_context,
+			llm=ChatOpenAI(model='gpt-4.1'),
+			browser_session=browser_session,
 			injected_agent_state=agent_state,
-			page_extraction_llm=ChatOpenAI(model='gpt-4o-mini'),
+			page_extraction_llm=ChatOpenAI(model='gpt-4.1-mini'),
 		)
 
 		done, valid = await agent.take_step()

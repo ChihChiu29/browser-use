@@ -8,27 +8,28 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from langchain_openai import ChatOpenAI
-
 from browser_use.agent.service import Agent
-from browser_use.browser.browser import Browser
-from browser_use.browser.context import BrowserContextConfig
+from browser_use.browser import BrowserProfile, BrowserSession
+from browser_use.llm import ChatOpenAI
 
-llm = ChatOpenAI(model='gpt-4o', temperature=0.0)
+llm = ChatOpenAI(model='gpt-4.1', temperature=0.0)
 
 
 async def main():
-	browser = Browser()
+	browser_session = BrowserSession(
+		browser_profile=BrowserProfile(
+			traces_dir='./tmp/traces/',
+			user_data_dir='~/.config/browseruse/profiles/default',
+		)
+	)
 
-	async with await browser.new_context(config=BrowserContextConfig(trace_path='./tmp/traces/')) as context:
+	async with browser_session:
 		agent = Agent(
 			task='Go to hackernews, then go to apple.com and return all titles of open tabs',
 			llm=llm,
-			browser_context=context,
+			browser_session=browser_session,
 		)
 		await agent.run()
-
-	await browser.close()
 
 
 asyncio.run(main())
